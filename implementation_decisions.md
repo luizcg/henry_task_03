@@ -6,32 +6,34 @@ This document explains the technical decisions behind the multi-agent routing sy
 
 ## 1. Vector Store Strategy
 
-**Q: Why did we choose Chroma as the vector store?**
+**Q: Why did we choose FAISS as the vector store?**
 
-A: Chroma was selected for several reasons:
+A: FAISS (Facebook AI Similarity Search) was selected for several reasons:
 
-- **Zero external dependencies**: Runs in-process or as a local persistent store without needing a separate server or Docker container.
-- **Native LangChain integration**: First-class support via `langchain-chroma`, making retriever setup straightforward.
-- **Persistence**: Supports `persist_directory` so embeddings survive restarts without re-indexing.
+- **High performance**: Highly optimized for similarity search, handles thousands of vectors efficiently.
+- **Zero external dependencies**: Runs entirely in-process without needing a separate server or Docker container.
+- **Native LangChain integration**: First-class support via `langchain-community`, with `save_local()` and `load_local()` for persistence.
+- **Persistence**: Supports saving/loading to disk so embeddings survive restarts without re-indexing.
+- **Lightweight**: No database server required, just files on disk (`index.faiss` + `index.pkl`).
 - **Good for demos and mid-scale**: Handles hundreds to thousands of documents efficiently, which matches our use case.
 
 Alternatives considered:
-- **FAISS**: Excellent performance, but lacks built-in persistence and metadata filtering.
+- **Chroma**: Good alternative with built-in metadata filtering, but adds dependency on chromadb package.
 - **Qdrant**: More features, but requires additional setup (Docker or cloud).
 - **Pinecone**: Managed cloud service, but adds external dependency and cost.
 
 ---
 
-**Q: Why use separate vector store collections per domain instead of one global store with metadata filtering?**
+**Q: Why use separate vector store indexes per domain instead of one global store with metadata filtering?**
 
-A: We chose **one Chroma collection per agent** (`chroma_db/hr`, `chroma_db/tech`, etc.) for the following reasons:
+A: We chose **one FAISS index per agent** (`faiss_index/hr`, `faiss_index/tech`, etc.) for the following reasons:
 
 - **Retrieval precision**: Each agent's retriever only sees its own documents, eliminating any risk of cross-domain contamination.
 - **Debuggability**: When tracing in Langfuse, it's immediately clear which domain's documents were retrieved.
 - **Simplicity**: No need for metadata filters in queries; the separation is structural.
 - **Assignment alignment**: The requirement explicitly mentions "domain-specific document collections," which maps naturally to separate stores.
 
-The alternative (single store + `{"domain": "hr"}` metadata filter) would work but adds complexity and potential for filter bugs.
+The alternative (single store with metadata filtering) would work but adds complexity and FAISS doesn't natively support metadata filtering without additional wrapper code.
 
 ---
 

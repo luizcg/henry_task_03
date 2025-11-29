@@ -227,20 +227,108 @@ acme-assistant -q "How do I submit an expense report?"
 
 ## Technical Decisions
 
-See `implementation_decisions.md` for detailed explanations of:
+See [`implementation_decisions.md`](implementation_decisions.md) for detailed explanations of:
 
-- Why Chroma was chosen as the vector store
-- Why separate collections per domain
+- Why FAISS was chosen as the vector store
+- Why separate indexes per domain
 - Why LCEL runnables instead of LangGraph
 - Why multi-label classification
 - RAG configuration choices
 
-## Known Limitations
+For a detailed technical overview with architecture diagrams, see [`TECHNICAL_REPORT.md`](TECHNICAL_REPORT.md).
 
-1. **No conversation memory**: Each query is independent
-2. **English only**: Documents and queries should be in English
-3. **No authentication**: Designed for demo/development use
-4. **Local vector stores**: Not suitable for distributed deployment without changes
+---
+
+## 🐛 Troubleshooting
+
+### "FAISS index not found" Error
+
+```
+FileNotFoundError: FAISS index not found at faiss_index/hr
+```
+
+**Solution**: Run the indexing command first:
+```bash
+acme-index
+# or: python -m src.indexing
+```
+
+### "OPENAI_API_KEY not set" Error
+
+**Solution**: Create a `.env` file with your API key:
+```bash
+cp .env.example .env
+# Edit .env and add: OPENAI_API_KEY=sk-...
+```
+
+### Slow First Response
+
+The first query may take 5-10 seconds as models and indexes are loaded into memory. Subsequent queries will be faster.
+
+### "Rate limit exceeded" Error
+
+OpenAI rate limits apply. Solutions:
+- Wait a few seconds and retry
+- Use a paid OpenAI account for higher limits
+- Reduce `RETRIEVER_K` in `config.py` to make fewer embedding calls
+
+### Langfuse Traces Not Appearing
+
+1. Verify `LANGFUSE_PUBLIC_KEY` and `LANGFUSE_SECRET_KEY` are set in `.env`
+2. Check the Langfuse dashboard for your project
+3. Traces may take 30-60 seconds to appear
+
+### Out of Memory Errors
+
+FAISS indexes are loaded into RAM. For large document collections:
+- Reduce `CHUNK_SIZE` to create smaller chunks
+- Use `FAISS.load_local(..., allow_dangerous_deserialization=True)` with caution
+
+---
+
+## 🚧 Known Limitations
+
+| Limitation | Description | Workaround |
+|------------|-------------|------------|
+| **No conversation memory** | Each query is independent; no context from previous questions | Include context in your question |
+| **English only** | Documents and queries should be in English | Translate queries before submitting |
+| **No authentication** | Designed for demo/development use | Add auth layer for production |
+| **Local vector stores** | FAISS indexes stored locally | Use Pinecone/Qdrant for distributed deployment |
+| **Single-user** | No concurrent request handling | Add async/queue for production |
+| **No streaming** | Responses return all at once | Implement streaming for better UX |
+| **Fixed retrieval count** | Always retrieves k=4 documents | Adjust in config or implement dynamic k |
+
+---
+
+## 🔮 Future Improvements
+
+### Short-term
+- [ ] **Streaming responses**: Show answers as they're generated
+- [ ] **Conversation memory**: Maintain context across multiple turns
+- [ ] **Confidence scores**: Show classifier confidence for each intent
+- [ ] **Source highlighting**: Show which parts of docs were used
+
+### Medium-term
+- [ ] **Async execution**: Parallel agent invocation for faster multi-domain responses
+- [ ] **Caching layer**: Cache frequent queries and embeddings
+- [ ] **Feedback loop**: Allow users to rate responses for continuous improvement
+- [ ] **Admin dashboard**: Web UI for monitoring and configuration
+
+### Long-term
+- [ ] **Multi-language support**: Translate queries and responses
+- [ ] **Custom fine-tuning**: Fine-tune models on company-specific terminology
+- [ ] **Hybrid search**: Combine vector search with keyword search (BM25)
+- [ ] **Agent collaboration**: Allow agents to consult each other for complex queries
+
+---
+
+## 📚 Additional Documentation
+
+- [`TECHNICAL_REPORT.md`](TECHNICAL_REPORT.md) - Detailed architecture and design
+- [`implementation_decisions.md`](implementation_decisions.md) - Technical decisions Q&A
+- [`test_queries.json`](test_queries.json) - Test cases with expected intents
+
+---
 
 ## License
 
