@@ -123,9 +123,24 @@ def format_response(result: dict, as_json: bool = False) -> str:
             "sources": result.get("sources", []),
             "context": result.get("context", ""),
         }
+        if result.get("error"):
+            output["error"] = result.get("error")
         return json.dumps(output, ensure_ascii=False, indent=2)
 
     lines = []
+
+    # Check for setup errors first
+    if result.get("error") == "missing_index":
+        lines.append("\n⚠️  Vector store not found!")
+        lines.append("")
+        lines.append("The knowledge base has not been indexed yet.")
+        lines.append("Please run one of these commands:")
+        lines.append("")
+        lines.append("    acme-index")
+        lines.append("    python -m src.indexing")
+        lines.append("")
+        lines.append("This will create the FAISS indexes needed to answer questions.")
+        return "\n".join(lines)
 
     # Classification info
     intents = result.get("intents", [])

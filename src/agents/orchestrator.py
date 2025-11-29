@@ -147,7 +147,12 @@ def classify_intent(query: str) -> dict:
 _agents_cache: dict[str, Runnable] = {}
 
 
-def get_agent(domain: str) -> Runnable | None:
+class AgentNotAvailableError(Exception):
+    """Raised when an agent cannot be loaded (e.g., missing vector store)."""
+    pass
+
+
+def get_agent(domain: str) -> Runnable:
     """
     Get an agent for the specified domain.
 
@@ -155,7 +160,11 @@ def get_agent(domain: str) -> Runnable | None:
         domain: Domain name (hr, tech, finance, legal).
 
     Returns:
-        The domain's RAG agent, or None if not found.
+        The domain's RAG agent.
+
+    Raises:
+        AgentNotAvailableError: If agent cannot be loaded.
+        KeyError: If domain is not recognized.
     """
     if domain in _agents_cache:
         return _agents_cache[domain]
@@ -168,16 +177,15 @@ def get_agent(domain: str) -> Runnable | None:
     }
 
     factory = agent_factories.get(domain)
-    if factory:
-        try:
-            agent = factory()
-            _agents_cache[domain] = agent
-            return agent
-        except FileNotFoundError as e:
-            logger.error(f"Agent for '{domain}' not available: {e}")
-            return None
+    if not factory:
+        raise KeyError(f"Unknown domain: {domain}")
 
-    return None
+    try:
+        agent = factory()
+        _agents_cache[domain] = agent
+        return agent
+    except FileNotFoundError as e:
+        raise AgentNotAvailableError(str(e)) from e
 
 
 # =============================================================================
@@ -260,17 +268,14 @@ def route_and_execute(state: dict) -> dict:
     # Execute each relevant agent
     agent_responses = []
     all_sources = []
+    missing_indexes = []
 
     for intent in intents:
         if intent == "other":
             continue
 
-        agent = get_agent(intent)
-        if agent is None:
-            logger.warning(f"No agent available for intent: {intent}")
-            continue
-
         try:
+            agent = get_agent(intent)
             logger.info(f"Invoking {intent} agent...")
             result = agent.invoke({"query": query})
 
@@ -287,6 +292,10 @@ def route_and_execute(state: dict) -> dict:
                 if source not in all_sources:
                     all_sources.append(source)
 
+        except AgentNotAvailableError as e:
+            logger.error(f"Agent for '{intent}' not available: {e}")
+            missing_indexes.append(intent)
+
         except Exception as e:
             logger.error(f"Error invoking {intent} agent: {e}")
             agent_responses.append({
@@ -294,6 +303,27 @@ def route_and_execute(state: dict) -> dict:
                 "answer": f"Error retrieving information from {intent} department.",
                 "context": "",
             })
+
+    # Handle missing indexes - provide helpful error message
+    if missing_indexes and not agent_responses:
+        missing_list = ", ".join(missing_indexes)
+        final_answer = (
+            f"⚠️ **Vector store not found** for: {missing_list}\n\n"
+            f"The knowledge base has not been indexed yet. Please run:\n\n"
+            f"```\nacme-index\n```\n\n"
+            f"Or: `python -m src.indexing`\n\n"
+            f"This will create the FAISS indexes needed to answer your question."
+        )
+        return {
+            "query": query,
+            "intents": intents,
+            "reasoning": reasoning,
+            "agent_responses": [],
+            "final_answer": final_answer,
+            "sources": [],
+            "context": "",
+            "error": "missing_index",
+        }
 
     # Synthesize if multiple responses
     if len(agent_responses) > 1:
