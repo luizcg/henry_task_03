@@ -1,0 +1,26 @@
+# Core LangChain packages
+langchain>=0.3.0
+langchain-openai>=0.2.0
+langchain-community>=0.3.0
+
+# Vector store
+faiss-cpu>=1.7.0
+
+# OpenAI
+openai>=1.0.0
+
+# Observability
+langfuse-langchain>=2.0.0
+
+# Tokenization
+tiktoken>=0.7.0
+
+# Environment management
+python-dotenv>=1.0.0
+
+# CLI / REPL
+prompt_toolkit>=3.0.0
+
+# Development
+ipykernel>=6.0.0
+jupyter>=1.0.0

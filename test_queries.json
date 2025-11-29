@@ -1,0 +1,110 @@
+{
+  "description": "Test queries for the multi-agent routing system",
+  "queries": [
+    {
+      "id": 1,
+      "query": "How do I request PTO?",
+      "expected_intents": ["hr"],
+      "category": "single_domain",
+      "notes": "Basic HR policy question"
+    },
+    {
+      "id": 2,
+      "query": "How do I reset my password?",
+      "expected_intents": ["tech"],
+      "category": "single_domain",
+      "notes": "Common IT support question"
+    },
+    {
+      "id": 3,
+      "query": "How do I submit an expense report?",
+      "expected_intents": ["finance"],
+      "category": "single_domain",
+      "notes": "Standard finance process question"
+    },
+    {
+      "id": 4,
+      "query": "What is the process for signing a vendor contract?",
+      "expected_intents": ["legal"],
+      "category": "single_domain",
+      "notes": "Legal contract approval process"
+    },
+    {
+      "id": 5,
+      "query": "How is unused PTO paid out in my final paycheck?",
+      "expected_intents": ["hr", "finance"],
+      "category": "multi_domain",
+      "notes": "Cross-domain: HR policy + Finance payroll"
+    },
+    {
+      "id": 6,
+      "query": "What are the data privacy requirements when onboarding a new vendor?",
+      "expected_intents": ["legal", "finance"],
+      "category": "multi_domain",
+      "notes": "Cross-domain: Legal privacy + Finance vendor management"
+    },
+    {
+      "id": 7,
+      "query": "I need a new laptop and monitor for working from home. What is the process?",
+      "expected_intents": ["tech", "hr"],
+      "category": "multi_domain",
+      "notes": "Cross-domain: IT hardware request + HR remote work policy"
+    },
+    {
+      "id": 8,
+      "query": "Can I expense my home office internet bill?",
+      "expected_intents": ["finance", "hr"],
+      "category": "multi_domain",
+      "notes": "Cross-domain: Finance expense + HR remote work policy"
+    },
+    {
+      "id": 9,
+      "query": "What should I do if I suspect a security breach involving customer data?",
+      "expected_intents": ["tech", "legal"],
+      "category": "multi_domain",
+      "notes": "Cross-domain: IT security incident + Legal data breach protocol"
+    },
+    {
+      "id": 10,
+      "query": "How do I connect to the VPN from a hotel?",
+      "expected_intents": ["tech"],
+      "category": "single_domain",
+      "notes": "Specific IT troubleshooting scenario"
+    },
+    {
+      "id": 11,
+      "query": "What benefits are available for new parents?",
+      "expected_intents": ["hr"],
+      "category": "single_domain",
+      "notes": "HR benefits question"
+    },
+    {
+      "id": 12,
+      "query": "What is the approval limit for purchases without a PO?",
+      "expected_intents": ["finance"],
+      "category": "single_domain",
+      "notes": "Finance purchasing policy"
+    },
+    {
+      "id": 13,
+      "query": "How do I report an ethics concern anonymously?",
+      "expected_intents": ["legal", "hr"],
+      "category": "multi_domain",
+      "notes": "Cross-domain: Legal compliance + HR conduct"
+    },
+    {
+      "id": 14,
+      "query": "What is the best pizza place in town?",
+      "expected_intents": ["other"],
+      "category": "out_of_scope",
+      "notes": "Question outside all domains - should return 'other'"
+    },
+    {
+      "id": 15,
+      "query": "Who is the CEO of the company?",
+      "expected_intents": ["other"],
+      "category": "edge_case",
+      "notes": "General company question - may not be in any domain docs"
+    }
+  ]
+}
