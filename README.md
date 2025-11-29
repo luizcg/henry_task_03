@@ -38,8 +38,6 @@ henry_task_03/
 ├── test_queries.json              # Test queries with expected intents
 ├── requirements.txt               # Python dependencies
 ├── .env.example                   # Environment variables template
-├── ENUNCIADO.md                   # Original assignment
-├── ENUNCIADO.extended.md          # Extended design notes
 ├── implementation_decisions.md    # Technical decisions (Q&A format)
 └── README.md                      # This file
 ```
