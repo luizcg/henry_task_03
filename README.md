@@ -35,6 +35,7 @@ henry_task_03/
 │       ├── legal_agent.py         # Legal department agent
 │       └── orchestrator.py        # Intent classifier + router
 ├── faiss_index/                   # Vector stores (created after indexing)
+├── traces/                        # Exported Langfuse traces (JSON)
 ├── test_queries.json              # Test queries with expected intents
 ├── requirements.txt               # Python dependencies
 ├── .env.example                   # Environment variables template
@@ -172,6 +173,10 @@ When configured, all workflow steps are traced:
 - Answer synthesis
 
 View traces at [cloud.langfuse.com](https://cloud.langfuse.com).
+
+#### Exported Traces
+
+Langfuse does not support exporting shareable trace URLs, so trace data was exported as JSON files and stored in the `traces/` directory. These files contain the full trace information including spans, LLM calls, and metadata for each query execution.
 
 ## Evaluator (Bonus)
 
